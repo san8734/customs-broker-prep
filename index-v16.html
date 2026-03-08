@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U.S. Customs Broker License Exam Prep</title>
+  <meta name="description" content="Authentic past CBP exam questions with detailed explanations. Lifetime access $99.">
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; margin:0; padding:0; background:#f9fafb; color:#1f2937; line-height:1.6; }
+    .navbar { position:fixed; top:0; width:100%; background:#1e40af; color:white; padding:1rem 0; z-index:100; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
+    .nav-container { max-width:1280px; margin:0 auto; padding:0 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+    .logo { font-size:1.5rem; font-weight:700; color:white; text-decoration:none; }
+    .nav-links { list-style:none; margin:0; padding:0; display:flex; gap:1.5rem; flex-wrap:wrap; justify-content:center; }
+    .nav-links a { color:white; text-decoration:none; cursor:pointer; font-size:1.05rem; transition:color 0.2s; }
+    .nav-links a:hover { color:#bfdbfe; }
+    .hidden { display:none !important; }
+    main { max-width:1280px; margin:5rem auto 4rem; padding:0 1.5rem; }
+    .hero { text-align:center; background:linear-gradient(135deg, #eff6ff, #dbeafe); padding:4rem 2rem; border-radius:1rem; margin-bottom:3rem; }
+    .hero h1 { font-size:2.5rem; color:#1e40af; margin-bottom:1rem; }
+    button { background:#15803d; color:white; border:none; padding:1rem 2.5rem; font-size:1.125rem; border-radius:0.5rem; cursor:pointer; margin:0.75rem; transition:background 0.2s; }
+    button:hover { background:#166534; }
+    h2 { color:#1e40af; font-size:1.875rem; margin-bottom:1.5rem; }
+    input[type="text"] { width:100%; padding:1rem; font-size:1.125rem; border:1px solid #d1d5db; border-radius:0.5rem; box-sizing:border-box; margin-bottom:1.5rem; }
+    select { padding:0.75rem; font-size:1.1rem; border:1px solid #d1d5db; border-radius:0.5rem; margin-bottom:1.5rem; width:100%; max-width:300px; }
+    #question-list, #video-list { margin-top:2rem; }
+    .question-item, .video-item {
+      background:white;
+      padding:1.5rem 2rem;
+      margin:1.25rem 0;
+      border-radius:0.75rem;
+      box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      cursor:pointer;
+      font-size:1.125rem;
+      line-height:1.6;
+      transition:all 0.2s ease;
+    }
+    .question-item:hover, .video-item:hover {
+      background:#f0f9ff;
+      box-shadow:0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      transform:translateY(-2px);
+    }
+    .teaser { background:#fefce8; border:1px solid #fef08a; padding:2rem; border-radius:0.75rem; text-align:center; margin:2rem 0; font-size:1.125rem; color:#854d0e; }
+    .modal {
+      position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:200;
+    }
+    .modal-content {
+      background:white; padding:2rem; border-radius:1rem; max-width:90%; width:900px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);
+      position:relative;
+    }
+    .close-modal { position:absolute; top:1rem; right:1.5rem; font-size:2rem; cursor:pointer; color:#6b7280; }
+    .modal-title { color:#dc2626; font-size:2rem; margin:0 0 0.5rem; font-weight:700; }
+    .modal-explanation-title { color:#1e40af; font-size:1.75rem; margin:1.25rem 0 0.5rem; font-weight:700; }
+    #modal-question { color:#111827; font-weight:normal; background:#f9fafb; padding:1.5rem; border-radius:0.75rem; white-space:pre-wrap; line-height:1.8; font-size:1.15rem; margin-top:0.5rem; }
+    #modal-explanation { color:#3b82f6; font-weight:normal; background:#f9fafb; padding:1.5rem; border-radius:0.75rem; white-space:pre-wrap; line-height:1.8; font-size:1.15rem; margin-top:0.5rem; overflow-y:auto; max-height:50vh; }
+    .modal-year-month-num { color:#4b5563; font-size:1.15rem; margin-bottom:1rem; }
+    @media (max-width:768px) {
+      main { padding:0 1rem; margin-top:4.5rem; }
+      .question-item, .video-item { padding:1.25rem; font-size:1.05rem; margin:1rem 0; }
+      .modal-content { padding:1.5rem; width:95%; }
+      .modal-title { font-size:1.75rem; }
+      .modal-explanation-title { font-size:1.5rem; margin:1rem 0 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a class="logo" href="#">Customs Broker Prep</a>
+    <ul class="nav-links">
+      <li><a onclick="showPage('home')">Home</a></li>
+      <li><a onclick="showPage('questions')">Question Bank</a></li>
+      <li><a onclick="showPage('videos')">Video Library</a></li>
+      <li><a onclick="showPage('resources')">Resources</a></li>
+      <li><a onclick="showPage('tips')">Tips</a></li>
+      <li id="dashboard-item" class="hidden"><a onclick="showPage('dashboard')">Dashboard</a></li>
+      <li id="logout-item" class="hidden"><a onclick="logout()">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <!-- Home -->
+  <div id="home" class="page">
+    <div class="hero">
+      <h1>U.S. Customs Broker License Exam Prep</h1>
+      <p style="font-size:1.25rem; max-width:800px; margin:1.5rem auto;">
+        Expert preparation with authentic past CBP questions, bilingual explanations, Title 19 CFR & HTSUS mastery. Lifetime access $99.
+      </p>
+      <div style="margin:2rem 0;">
+        <button onclick="unlockFullMode()">Unlock Full Mode (Demo)</button>
+        <button onclick="alert('Payment simulation: Lifetime membership activated!')">Get Lifetime Access — $99</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question Bank -->
+  <div id="questions" class="page hidden">
+    <h2>Question Bank</h2>
+    <p>Choose exam batch:</p>
+    <select id="batch-select" onchange="loadBatch(this.value)">
+      <option value="2024-04.json" selected>2024 April</option>
+      <option value="2023-10.json">2023 October</option>
+    </select>
+    <p>Search any way you like: "2024april1", "april 2024 1", "national permit", "triennial" — case insensitive, no strict format needed!</p>
+    <input type="text" id="search" placeholder="Type year, month, number or keyword...">
+    <div id="question-list"></div>
+  </div>
+
+  <!-- Video Library (列表式) -->
+  <div id="videos" class="page hidden">
+    <h2>Video Library</h2>
+    <p>所有视频按主题整理，点击标题在新窗口观看（YouTube）。</p>
+    <input type="text" id="video-search" placeholder="搜索视频标题或关键词...">
+    <div id="video-list" style="margin-top: 1.5rem;"></div>
+  </div>
+
+  <!-- Resources -->
+  <div id="resources" class="page hidden">
+    <h2>Resources</h2>
+    <p>Useful links for your study:</p>
+    <ul>
+      <li><a href="https://www.ecfr.gov/current/title-19" target="_blank">Title 19 CFR (eCFR) - Official Customs Regulations</a></li>
+      <li><a href="https://hts.usitc.gov/" target="_blank">HTSUS Online - Harmonized Tariff Schedule</a></li>
+      <li><a href="https://www.cbp.gov/trade" target="_blank">CBP Trade Website</a></li>
+      <li><a href="https://www.cbp.gov/trade/basic-import-export" target="_blank">Basic Import/Export Information</a></li>
+    </ul>
+  </div>
+
+  <!-- Tips -->
+  <div id="tips" class="page hidden">
+    <h2>Exam Tips</h2>
+    <ul>
+      <li>Open-book exam: Master quick lookup of Title 19 CFR and HTSUS sections</li>
+      <li>Focus on understanding concepts deeply, not just memorizing</li>
+      <li>Use bilingual explanations to clarify complex rules</li>
+      <li>Practice with real past questions under timed conditions</li>
+      <li>Review common topics: powers of attorney, record retention, drawback, classification, valuation, quota, etc.</li>
+    </ul>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="page hidden">
+    <h2>Dashboard</h2>
+    <p>Recent viewed questions:</p>
+    <div id="recent-list"></div>
+  </div>
+
+  <!-- Modal -->
+  <div id="question-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('question-modal')">×</span>
+      <div id="modal-title"></div>
+      <div id="modal-year-month-num"></div>
+      <pre id="modal-question"></pre>
+      <pre id="modal-explanation"></pre>
+    </div>
+  </div>
+</main>
+
+<script>
+  let fullMode = false;
+  let recent = [];
+
+  let questions = [];
+
+  // 视频数据（以后在这里添加新视频）
+  const videos = [
+    {
+      title: "Question Explanations - Chinese-English #1",
+      description: "2024 April 第1题详细讲解（中英双语）",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" // 替换成真实链接
+    },
+    {
+      title: "Pure English Explanation - Power of Attorney",
+      description: "Power of Attorney 相关题目纯英文讲解",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    }
+    // 加新视频就继续加对象，用逗号分隔
+  ];
+
+  function loadBatch(file) {
+    fetch(file)
+      .then(response => {
+        if (!response.ok) throw new Error(`无法加载 ${file}`);
+        return response.json();
+      })
+      .then(data => {
+        questions = data.map((row, index) => ({
+          id: index + 1,
+          year: row[0],
+          month: row[1],
+          num: row[2],
+          text: row[3],
+          explanation: row[4] || 'No explanation available'
+        }));
+        console.log(`成功加载 ${file} 的 ${questions.length} 道题目`);
+        renderQuestions();
+      })
+      .catch(error => {
+        console.error('加载失败:', error);
+        document.getElementById('question-list').innerHTML = `<p style="color:red;">加载失败：${file}</p>`;
+      });
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+
+    document.getElementById('logout-item').classList.toggle('hidden', !fullMode);
+
+    if (id === 'questions') renderQuestions();
+  }
+
+  function unlockFullMode() {
+    fullMode = true;
+    alert("Full mode unlocked! All content available.");
+    showPage('questions');
+  }
+
+  function logout() {
+    fullMode = false;
+    recent = [];
+    showPage('home');
+  }
+
+  function renderQuestions(filter = '') {
+    const container = document.getElementById('question-list');
+    container.innerHTML = '';
+
+    if (!fullMode) {
+      container.innerHTML = '<div class="teaser">Become a member to access the full question bank and search function.</div>';
+      return;
+    }
+
+    if (!filter.trim()) {
+      container.innerHTML = questions.map(q => `
+        <div class="question-item" onclick="openModal(${q.id})">
+          ${q.year} ${q.month} #${q.num}: ${q.text.substring(0, 120)}${q.text.length > 120 ? '...' : ''}
+        </div>
+      `).join('');
+      return;
+    }
+
+    const cleanFilter = filter.toLowerCase().trim().replace(/\s+/g, '');
+
+    const list = questions.filter(q => {
+      const yearStr = q.year.toString();
+      const monthLower = q.month.toLowerCase();
+      const numStr = q.num.toString();
+
+      const compactKeys = [
+        `${yearStr}${monthLower}${numStr}`,
+        `${yearStr}${monthLower.slice(0,3)}${numStr}`,
+        `${monthLower}${yearStr}${numStr}`,
+        `${numStr}${yearStr}${monthLower}`
+      ];
+
+      const hasCompactMatch = compactKeys.some(key => cleanFilter.includes(key));
+
+      const textKey = `${yearStr}${monthLower}${numStr}${q.text}${q.explanation}`.toLowerCase().replace(/\s+/g, '');
+
+      return hasCompactMatch || textKey.includes(cleanFilter);
+    });
+
+    if (list.length === 0) {
+      container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">No matching questions found.</p>';
+      return;
+    }
+
+    container.innerHTML = list.map(q => `
+      <div class="question-item" onclick="openModal(${q.id})">
+        ${q.year} ${q.month} #${q.num}: ${q.text.substring(0, 120)}${q.text.length > 120 ? '...' : ''}
+      </div>
+    `).join('');
+  }
+
+  function renderVideos(filter = '') {
+    const container = document.getElementById('video-list');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const lowerFilter = filter.toLowerCase().trim();
+
+    const list = videos.filter(v => {
+      if (!lowerFilter) return true;
+      const key = `${v.title} ${v.description}`.toLowerCase();
+      return key.includes(lowerFilter);
+    });
+
+    if (list.length === 0) {
+      container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">No matching videos found.</p>';
+      return;
+    }
+
+    container.innerHTML = list.map(v => `
+      <div class="video-item" onclick="window.open('${v.url}', '_blank')">
+        <strong>${v.title}</strong><br>
+        <span style="color:#666; font-size:0.95rem;">${v.description || 'No description'}</span>
+      </div>
+    `).join('');
+  }
+
+  function openModal(id) {
+    const q = questions.find(q => q.id === id);
+    if (!q) return;
+
+    document.getElementById('modal-title').innerHTML = `<span class="modal-title">Question ${q.num}</span>`;
+    document.getElementById('modal-year-month-num').textContent = `Year: ${q.year} | Month: ${q.month}`;
+
+    let questionText = q.text || 'No question text';
+    questionText = questionText.replace(/\n/g, '<br>');
+    document.getElementById('modal-question').innerHTML = questionText;
+
+    let explanationText = q.explanation || 'No explanation available';
+    explanationText = explanationText.replace(/\n/g, '<br>');
+
+    document.getElementById('modal-explanation').innerHTML = 
+      '<span class="modal-explanation-title">Explanation</span><br>' +
+      explanationText;
+
+    document.getElementById('question-modal').classList.remove('hidden');
+
+    if (!recent.includes(id)) {
+      recent.unshift(id);
+      if (recent.length > 10) recent.pop();
+      document.getElementById('recent-list').innerHTML = recent.map(rid => {
+        const rq = questions.find(qq => qq.id === rid);
+        return `<div>${rq.year} ${rq.month} #${rq.num}: ${rq.text.substring(0, 60)}...</div>`;
+      }).join('');
+    }
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+  }
+
+  window.addEventListener('load', () => {
+    showPage('home');
+    document.getElementById('search').addEventListener('input', e => renderQuestions(e.target.value));
+    const videoSearch = document.getElementById('video-search');
+    if (videoSearch) {
+      videoSearch.addEventListener('input', e => renderVideos(e.target.value));
+      renderVideos();
+    }
+    loadBatch(document.getElementById('batch-select').value);
+  });
+</script>
+</body>
+</html>
