@@ -98,11 +98,8 @@
   <div id="questions" class="page hidden">
     <h2>Question Bank</h2>
     <p>Choose exam batch:</p>
-    <select id="batch-select" onchange="loadBatch(this.value)">
-  <option value="all" selected>All Batches</option>
-  <option value="2024-04.json">2024 April</option>
-  <option value="2023-10.json">2023 October</option>
-  <!-- Add future batches here like: <option value="2025-04.json">2025 April</option> -->
+   <select id="batch-select" onchange="loadBatch(this.value)">
+  <!-- Options will be generated automatically from batches.json -->
 </select>
     <p>Search any way you like: "2024april1", "april 2024 1", "national permit", "triennial" — case insensitive, no strict format needed!</p>
     <input type="text" id="search" placeholder="Type year, month, number or keyword...">
@@ -165,6 +162,7 @@
   let recent = [];
 
   let questions = [];
+  let batches = [];  // Will hold the list from batches.json
 
   // 视频数据（以后在这里添加新视频）
   const videos = [
@@ -181,53 +179,53 @@
     // 加新视频就继续加对象，用逗号分隔
   ];
 
-  function loadBatch(file) {
+ function loadBatch(file) {
   const container = document.getElementById('question-list');
   container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">Loading questions...</p>';
 
   if (file === 'all') {
-    // List of all batch files – easy to add new ones later
-    const allBatches = ['2024-04.json', '2023-10.json'];  // ← add new filenames here when you have more
+    // Load ALL active batches from the batches list
+    const activeBatches = batches.filter(b => b.active).map(b => b.value);
 
     Promise.all(
-      allBatches.map(batchFile =>
+      activeBatches.map(batchFile =>
         fetch(batchFile)
           .then(response => {
             if (!response.ok) {
               console.warn(`Failed to load ${batchFile}`);
-              return [];  // skip bad file, don't crash
+              return [];
             }
             return response.json();
           })
-          .catch(() => [])  // silent fail for missing files
+          .catch(() => [])
       )
     )
     .then(results => {
       let allQuestions = [];
       results.forEach((batchData, batchIndex) => {
-        const batchName = allBatches[batchIndex];
+        const batchFile = activeBatches[batchIndex];
         const batchQuestions = batchData.map((row, index) => ({
-          id: allQuestions.length + index + 1,  // unique ID across all
+          id: allQuestions.length + index + 1,
           year: row[0],
           month: row[1],
           num: row[2],
           text: row[3],
           explanation: row[4] || 'No explanation available',
-          batch: batchName.replace('.json', '').replace('-', ' ')  // e.g. "2024 04" for display if you want
+          batch: batchFile.replace('.json', '').replace('-', ' ')
         }));
         allQuestions = allQuestions.concat(batchQuestions);
       });
 
       questions = allQuestions;
-      console.log(`Loaded ${questions.length} questions from all batches`);
-      renderQuestions(document.getElementById('search').value || '');  // re-apply any current search filter
+      console.log(`Loaded ${questions.length} questions from all active batches`);
+      renderQuestions(document.getElementById('search').value || '');
     })
     .catch(err => {
       console.error('Error loading all batches:', err);
-      container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Error loading questions from all batches. Try selecting a single batch.</p>';
+      container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Error loading questions. Try a single batch.</p>';
     });
   } else {
-    // Original single-batch load
+    // Single batch load (same as before)
     fetch(file)
       .then(response => {
         if (!response.ok) throw new Error(`Unable to load ${file}`);
@@ -247,7 +245,7 @@
       })
       .catch(error => {
         console.error('Load failed:', error);
-        container.innerHTML = `<p style="color:red; text-align:center; padding:2rem;">Failed to load ${file}. Check if the file exists.</p>`;
+        container.innerHTML = `<p style="color:red; text-align:center; padding:2rem;">Failed to load ${file}.</p>`;
       });
   }
 }
@@ -384,17 +382,88 @@
     document.getElementById(modalId).classList.add('hidden');
   }
 
-  window.addEventListener('load', () => {
+window.addEventListener('load', () => {
     showPage('home');
     document.getElementById('search').addEventListener('input', e => renderQuestions(e.target.value));
     const videoSearch = document.getElementById('video-search');
     if (videoSearch) {
       videoSearch.addEventListener('input', e => renderVideos(e.target.value));
-      renderVideos();
+      renderVideos(); // initial render (will show nothing until videos.json is loaded)
     }
-    loadBatch(document.getElementById('batch-select').value);
   });
+
+  // ────────────────────────────────────────────────────────────────
+  // Load batches.json and populate dropdown + load default batch
+  // ────────────────────────────────────────────────────────────────
+  fetch('batches.json')
+    .then(response => {
+      if (!response.ok) throw new Error('batches.json not found or failed to load');
+      return response.json();
+    })
+    .then(data => {
+      batches = data;
+
+      const select = document.getElementById('batch-select');
+      select.innerHTML = ''; // clear any existing options
+
+      // Add "All Batches" as first option (default selected)
+      const allOption = document.createElement('option');
+      allOption.value = 'all';
+      allOption.textContent = 'All Batches';
+      allOption.selected = true;
+      select.appendChild(allOption);
+
+      // Add only active batches from batches.json
+      batches.filter(b => b.active).forEach(batch => {
+        const option = document.createElement('option');
+        option.value = batch.value;
+        option.textContent = batch.label;
+        select.appendChild(option);
+      });
+
+      // Automatically load the default selection ("all")
+      loadBatch('all');
+    })
+    .catch(error => {
+      console.error('Failed to load batches.json:', error);
+      document.getElementById('question-list').innerHTML =
+        '<p style="color:red; text-align:center; padding:2rem;">Failed to load batch list. Please check if batches.json exists in the root.</p>';
+    });
+
+  // Load videos.json (if you already added the fetch earlier; otherwise add it here later)
+  fetch('videos.json')
+    .then(response => response.json())
+    .then(data => {
+      videos = data;
+      renderVideos();
+    })
+    .catch(error => {
+      console.error('Failed to load videos.json:', error);
+      // Optional: show message in UI if desired
+      // document.getElementById('video-list').innerHTML = '<p style="color:#666;">No videos loaded yet.</p>';
+    });
+
+  // ────────────────────────────────────────────────────────────────
+  // Optional: content.json for Resources & Tips (if you want to add later)
+  // ────────────────────────────────────────────────────────────────
+  /*
+  fetch('content.json')
+    .then(response => response.json())
+    .then(data => {
+      // Resources
+      document.getElementById('resources-list').innerHTML = data.resources
+        .map(r => `<li><a href="${r.url}" target="_blank">${r.text}</a></li>`)
+        .join('');
+      // Tips
+      document.getElementById('tips-list').innerHTML = data.tips
+        .map(t => `<li>${t}</li>`)
+        .join('');
+    })
+    .catch(error => console.error('Failed to load content.json:', error));
+  */
 </script>
+
 </body>
 </html>
+
 
