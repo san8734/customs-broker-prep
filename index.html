@@ -99,9 +99,11 @@
     <h2>Question Bank</h2>
     <p>Choose exam batch:</p>
     <select id="batch-select" onchange="loadBatch(this.value)">
-      <option value="2024-04.json" selected>2024 April</option>
-      <option value="2023-10.json">2023 October</option>
-    </select>
+  <option value="all" selected>All Batches</option>
+  <option value="2024-04.json">2024 April</option>
+  <option value="2023-10.json">2023 October</option>
+  <!-- Add future batches here like: <option value="2025-04.json">2025 April</option> -->
+</select>
     <p>Search any way you like: "2024april1", "april 2024 1", "national permit", "triennial" — case insensitive, no strict format needed!</p>
     <input type="text" id="search" placeholder="Type year, month, number or keyword...">
     <div id="question-list"></div>
@@ -180,9 +182,55 @@
   ];
 
   function loadBatch(file) {
+  const container = document.getElementById('question-list');
+  container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">Loading questions...</p>';
+
+  if (file === 'all') {
+    // List of all batch files – easy to add new ones later
+    const allBatches = ['2024-04.json', '2023-10.json'];  // ← add new filenames here when you have more
+
+    Promise.all(
+      allBatches.map(batchFile =>
+        fetch(batchFile)
+          .then(response => {
+            if (!response.ok) {
+              console.warn(`Failed to load ${batchFile}`);
+              return [];  // skip bad file, don't crash
+            }
+            return response.json();
+          })
+          .catch(() => [])  // silent fail for missing files
+      )
+    )
+    .then(results => {
+      let allQuestions = [];
+      results.forEach((batchData, batchIndex) => {
+        const batchName = allBatches[batchIndex];
+        const batchQuestions = batchData.map((row, index) => ({
+          id: allQuestions.length + index + 1,  // unique ID across all
+          year: row[0],
+          month: row[1],
+          num: row[2],
+          text: row[3],
+          explanation: row[4] || 'No explanation available',
+          batch: batchName.replace('.json', '').replace('-', ' ')  // e.g. "2024 04" for display if you want
+        }));
+        allQuestions = allQuestions.concat(batchQuestions);
+      });
+
+      questions = allQuestions;
+      console.log(`Loaded ${questions.length} questions from all batches`);
+      renderQuestions(document.getElementById('search').value || '');  // re-apply any current search filter
+    })
+    .catch(err => {
+      console.error('Error loading all batches:', err);
+      container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Error loading questions from all batches. Try selecting a single batch.</p>';
+    });
+  } else {
+    // Original single-batch load
     fetch(file)
       .then(response => {
-        if (!response.ok) throw new Error(`无法加载 ${file}`);
+        if (!response.ok) throw new Error(`Unable to load ${file}`);
         return response.json();
       })
       .then(data => {
@@ -194,15 +242,15 @@
           text: row[3],
           explanation: row[4] || 'No explanation available'
         }));
-        console.log(`成功加载 ${file} 的 ${questions.length} 道题目`);
-        renderQuestions();
+        console.log(`Loaded ${questions.length} questions from ${file}`);
+        renderQuestions(document.getElementById('search').value || '');
       })
       .catch(error => {
-        console.error('加载失败:', error);
-        document.getElementById('question-list').innerHTML = `<p style="color:red;">加载失败：${file}</p>`;
+        console.error('Load failed:', error);
+        container.innerHTML = `<p style="color:red; text-align:center; padding:2rem;">Failed to load ${file}. Check if the file exists.</p>`;
       });
   }
-
+}
   function showPage(id) {
     document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
@@ -349,3 +397,4 @@
 </script>
 </body>
 </html>
+
