@@ -159,36 +159,49 @@
   let fullMode = false;
   let recent = [];
   let questions = [];
-  let batches = []; // Will hold the list from batches.json
-  let videos = [];  // Will be loaded from videos.json later
+  let batches = [];
+  let videos = [];
+
+  // Fallback videos if videos.json is missing or fails
+  const placeholderVideos = [
+    {
+      title: "Question Explanations - Chinese-English #1",
+      description: "2024 April 第1题详细讲解（中英双语）",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    },
+    {
+      title: "Pure English Explanation - Power of Attorney",
+      description: "Power of Attorney 相关题目纯英文讲解",
+      url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    }
+  ];
 
   function loadBatch(file) {
     const container = document.getElementById('question-list');
     container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">Loading questions...</p>';
 
     if (file === 'all') {
-      // Load ALL active batches from the batches list
       const activeBatches = batches.filter(b => b.active).map(b => b.value);
 
       Promise.all(
         activeBatches.map(batchFile =>
           fetch(batchFile)
-            .then(response => {
-              if (!response.ok) {
+            .then(r => {
+              if (!r.ok) {
                 console.warn(`Failed to load ${batchFile}`);
                 return [];
               }
-              return response.json();
+              return r.json();
             })
             .catch(() => [])
         )
       )
       .then(results => {
         let allQuestions = [];
-        results.forEach((batchData, batchIndex) => {
-          const batchFile = activeBatches[batchIndex];
-          const batchQuestions = batchData.map((row, index) => ({
-            id: allQuestions.length + index + 1,
+        results.forEach((batchData, i) => {
+          const batchFile = activeBatches[i];
+          const batchQuestions = batchData.map((row, idx) => ({
+            id: allQuestions.length + idx + 1,
             year: row[0],
             month: row[1],
             num: row[2],
@@ -205,18 +218,17 @@
       })
       .catch(err => {
         console.error('Error loading all batches:', err);
-        container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Error loading questions. Try a single batch.</p>';
+        container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Error loading questions from all batches.</p>';
       });
     } else {
-      // Single batch load
       fetch(file)
-        .then(response => {
-          if (!response.ok) throw new Error(`Unable to load ${file}`);
-          return response.json();
+        .then(r => {
+          if (!r.ok) throw new Error(`Cannot load ${file}`);
+          return r.json();
         })
         .then(data => {
-          questions = data.map((row, index) => ({
-            id: index + 1,
+          questions = data.map((row, i) => ({
+            id: i + 1,
             year: row[0],
             month: row[1],
             num: row[2],
@@ -226,15 +238,15 @@
           console.log(`Loaded ${questions.length} questions from ${file}`);
           renderQuestions(document.getElementById('search').value || '');
         })
-        .catch(error => {
-          console.error('Load failed:', error);
-          container.innerHTML = `<p style="color:red; text-align:center; padding:2rem;">Failed to load ${file}.</p>`;
+        .catch(err => {
+          console.error(err);
+          container.innerHTML = `<p style="color:red; text-align:center; padding:2rem;">Failed to load ${file}</p>`;
         });
     }
   }
 
   function showPage(id) {
-    document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
     document.getElementById('logout-item').classList.toggle('hidden', !fullMode);
     if (id === 'questions') renderQuestions();
@@ -263,33 +275,32 @@
     if (!filter.trim()) {
       container.innerHTML = questions.map(q => `
         <div class="question-item" onclick="openModal(${q.id})">
-          ${q.year} ${q.month} #${q.num}: ${q.text.substring(0, 120)}${q.text.length > 120 ? '...' : ''}
+          ${q.year} ${q.month} #${q.num}: ${q.text.substring(0,120)}${q.text.length > 120 ? '...' : ''}
         </div>
       `).join('');
       return;
     }
-    const cleanFilter = filter.toLowerCase().trim().replace(/\s+/g, '');
+    const clean = filter.toLowerCase().trim().replace(/\s+/g,'');
     const list = questions.filter(q => {
-      const yearStr = q.year.toString();
-      const monthLower = q.month.toLowerCase();
-      const numStr = q.num.toString();
-      const compactKeys = [
-        `${yearStr}${monthLower}${numStr}`,
-        `${yearStr}${monthLower.slice(0,3)}${numStr}`,
-        `${monthLower}${yearStr}${numStr}`,
-        `${numStr}${yearStr}${monthLower}`
+      const y = q.year.toString();
+      const m = q.month.toLowerCase();
+      const n = q.num.toString();
+      const keys = [
+        `${y}${m}${n}`,
+        `${y}${m.slice(0,3)}${n}`,
+        `${m}${y}${n}`,
+        `${n}${y}${m}`
       ];
-      const hasCompactMatch = compactKeys.some(key => cleanFilter.includes(key));
-      const textKey = `${yearStr}${monthLower}${numStr}${q.text}${q.explanation}`.toLowerCase().replace(/\s+/g, '');
-      return hasCompactMatch || textKey.includes(cleanFilter);
+      return keys.some(k => clean.includes(k)) ||
+             `${y}${m}${n}${q.text}${q.explanation}`.toLowerCase().replace(/\s+/g,'').includes(clean);
     });
-    if (list.length === 0) {
+    if (!list.length) {
       container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">No matching questions found.</p>';
       return;
     }
     container.innerHTML = list.map(q => `
       <div class="question-item" onclick="openModal(${q.id})">
-        ${q.year} ${q.month} #${q.num}: ${q.text.substring(0, 120)}${q.text.length > 120 ? '...' : ''}
+        ${q.year} ${q.month} #${q.num}: ${q.text.substring(0,120)}${q.text.length > 120 ? '...' : ''}
       </div>
     `).join('');
   }
@@ -298,16 +309,16 @@
     const container = document.getElementById('video-list');
     if (!container) return;
     container.innerHTML = '';
-    const lowerFilter = filter.toLowerCase().trim();
-    const list = videos.filter(v => {
-      if (!lowerFilter) return true;
-      const key = `${v.title} ${v.description}`.toLowerCase();
-      return key.includes(lowerFilter);
-    });
-    if (list.length === 0) {
+
+    const source = videos.length ? videos : placeholderVideos;
+    const term = filter.toLowerCase().trim();
+    const list = source.filter(v => !term || `${v.title} ${v.description}`.toLowerCase().includes(term));
+
+    if (!list.length) {
       container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">No matching videos found.</p>';
       return;
     }
+
     container.innerHTML = list.map(v => `
       <div class="video-item" onclick="window.open('${v.url}', '_blank')">
         <strong>${v.title}</strong><br>
@@ -321,133 +332,114 @@
     if (!q) return;
     document.getElementById('modal-title').innerHTML = `<span class="modal-title">Question ${q.num}</span>`;
     document.getElementById('modal-year-month-num').textContent = `Year: ${q.year} | Month: ${q.month}`;
-    let questionText = q.text || 'No question text';
-    questionText = questionText.replace(/\n/g, '<br>');
-    document.getElementById('modal-question').innerHTML = questionText;
-    let explanationText = q.explanation || 'No explanation available';
-    explanationText = explanationText.replace(/\n/g, '<br>');
+    document.getElementById('modal-question').innerHTML = (q.text || 'No question text').replace(/\n/g, '<br>');
     document.getElementById('modal-explanation').innerHTML =
       '<span class="modal-explanation-title">Explanation</span><br>' +
-      explanationText;
+      (q.explanation || 'No explanation available').replace(/\n/g, '<br>');
     document.getElementById('question-modal').classList.remove('hidden');
+
     if (!recent.includes(id)) {
       recent.unshift(id);
       if (recent.length > 10) recent.pop();
       document.getElementById('recent-list').innerHTML = recent.map(rid => {
         const rq = questions.find(qq => qq.id === rid);
-        return `<div>${rq.year} ${rq.month} #${rq.num}: ${rq.text.substring(0, 60)}...</div>`;
+        return `<div>${rq.year} ${rq.month} #${rq.num}: ${rq.text.substring(0,60)}...</div>`;
       }).join('');
     }
   }
 
-  function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
   }
 
   window.addEventListener('load', () => {
     showPage('home');
     document.getElementById('search').addEventListener('input', e => renderQuestions(e.target.value));
-    const videoSearch = document.getElementById('video-search');
-    if (videoSearch) {
-      videoSearch.addEventListener('input', e => renderVideos(e.target.value));
+    const vs = document.getElementById('video-search');
+    if (vs) {
+      vs.addEventListener('input', e => renderVideos(e.target.value));
       renderVideos();
     }
 
-    // Load batches.json and populate dropdown + load default
+    // Load batches
     fetch('batches.json')
-      .then(response => {
-        if (!response.ok) throw new Error('batches.json not found or failed to load');
-        return response.json();
-      })
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
         batches = data;
-        const select = document.getElementById('batch-select');
-        select.innerHTML = '';
-        const allOption = document.createElement('option');
-        allOption.value = 'all';
-        allOption.textContent = 'All Batches';
-        allOption.selected = true;
-        select.appendChild(allOption);
-        batches.filter(b => b.active).forEach(batch => {
-          const option = document.createElement('option');
-          option.value = batch.value;
-          option.textContent = batch.label;
-          select.appendChild(option);
+        const sel = document.getElementById('batch-select');
+        sel.innerHTML = '';
+        const all = document.createElement('option');
+        all.value = 'all'; all.textContent = 'All Batches'; all.selected = true;
+        sel.appendChild(all);
+        batches.filter(b => b.active).forEach(b => {
+          const op = document.createElement('option');
+          op.value = b.value; op.textContent = b.label;
+          sel.appendChild(op);
         });
         loadBatch('all');
       })
-      .catch(error => {
-        console.error('Failed to load batches.json:', error);
+      .catch(() => {
         document.getElementById('question-list').innerHTML =
-          '<p style="color:red; text-align:center; padding:2rem;">Failed to load batch list. Please check if batches.json exists in the root.</p>';
+          '<p style="color:red; text-align:center; padding:2rem;">Failed to load batches.json</p>';
       });
 
-    // Load videos.json (placeholder - will be replaced later if needed)
+    // Load videos (fallback to placeholder)
     fetch('videos.json')
-      .then(response => response.json())
-      .then(data => {
-        videos = data;
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => { videos = data; renderVideos(); })
+      .catch(() => {
+        videos = placeholderVideos;
         renderVideos();
-      })
-      .catch(error => {
-        console.error('Failed to load videos.json:', error);
       });
 
-    // Load resources.json and render grouped categories
+    // Resources – collapsible accordion (all start closed)
     fetch('resources.json')
-      .then(response => {
-        if (!response.ok) throw new Error('resources.json not found or failed to load');
-        return response.json();
-      })
-      .then(categories => {
-        const container = document.getElementById('resources-container');
-        if (!container) return;
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(groups => {
+        const cont = document.getElementById('resources-container');
+        if (!cont) return;
 
-        container.innerHTML = categories.map(cat => `
-          <div style="margin-bottom:2.5rem; background:#ffffff; padding:1.5rem; border-radius:0.75rem; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-            <h3 style="color:#1e40af; margin-bottom:1rem; border-bottom:2px solid #bfdbfe; padding-bottom:0.5rem; font-size:1.5rem;">
-              ${cat.category}
-            </h3>
-            <ul style="list-style:none; padding:0; margin:0;">
-              ${cat.items.map(item => `
-                <li style="margin:0.75rem 0; line-height:1.5;">
-                  <a href="${item.url}" target="_blank" style="color:#1e40af; text-decoration:none; font-weight:500; transition:color 0.2s;">
-                    ${item.text}
-                  </a>
-                  <span style="color:#4b5563; font-size:0.95rem; margin-left:0.5rem;">
-                    - ${item.description || ''}
-                  </span>
-                </li>
-              `).join('')}
-            </ul>
+        cont.innerHTML = groups.map(group => `
+          <div class="resource-group" style="margin-bottom:1.5rem; background:#fff; border-radius:0.75rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:hidden;">
+            <div class="resource-header" style="background:#f0f9ff; padding:1rem 1.5rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center; color:#1e40af; font-size:1.4rem; font-weight:600;">
+              ${group.category}
+              <span style="font-size:1.3rem;">▼</span>
+            </div>
+            <div class="resource-content" style="display:none; padding:1rem 1.5rem;">
+              <ul style="list-style:none; margin:0; padding:0;">
+                ${group.items.map(item => `
+                  <li style="margin:0.8rem 0;">
+                    <a href="${item.url}" target="_blank" style="color:#1e40af; text-decoration:none; font-weight:500;">
+                      ${item.text}
+                    </a>
+                    ${item.description ? `<span style="color:#666; font-size:0.95rem;"> - ${item.description}</span>` : ''}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
           </div>
         `).join('');
+
+        // Add toggle behavior
+        document.querySelectorAll('.resource-header').forEach(header => {
+          header.addEventListener('click', () => {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('span:last-child');
+            const isHidden = content.style.display === 'none' || !content.style.display;
+            content.style.display = isHidden ? 'block' : 'none';
+            icon.textContent = isHidden ? '▲' : '▼';
+          });
+        });
       })
-      .catch(error => {
-        console.error('Failed to load resources.json:', error);
-        const container = document.getElementById('resources-container');
-        if (container) {
-          container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Failed to load resources. Please check if resources.json exists.</p>';
-        }
+      .catch(e => {
+        console.error('Resources failed:', e);
+        const cont = document.getElementById('resources-container');
+        if (cont) cont.innerHTML = '<p style="color:#dc2626; text-align:center; padding:2rem;">Failed to load resources. Check resources.json.</p>';
       });
   });
 </script>
 
 </body>
 </html>
-Important reminders before you commit:
-
-Make sure your Resources HTML <div id="resources"> is already updated to use <div id="resources-container"></div> (not a static <ul>). If not, change it now in the same edit:
-
-HTML<div id="resources" class="page hidden">
-  <h2>Resources</h2>
-  <p>Organized study materials and official references:</p>
-  <div id="resources-container"></div>
-  <p style="margin-top:1.5rem; font-size:0.95rem; color:#4b5563;">
-    <em>Note: PDFs open in browser. Right-click → "Save as" to download.</em>
-  </p>
-</div>
-
-
 
 
