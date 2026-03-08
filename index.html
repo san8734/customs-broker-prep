@@ -162,7 +162,7 @@
   let batches = [];
   let videos = [];
 
-  // Fallback videos if videos.json is missing or fails
+  // Fallback videos if videos.json fails
   const placeholderVideos = [
     {
       title: "Question Explanations - Chinese-English #1",
@@ -392,27 +392,45 @@
         renderVideos();
       });
 
-    // Resources – collapsible accordion (all start closed)
+    // Resources – compact, uniform, centered buttons (start closed)
     fetch('resources.json')
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(groups => {
         const cont = document.getElementById('resources-container');
         if (!cont) return;
 
+        cont.style.textAlign = 'center';  // Center all groups
+
         cont.innerHTML = groups.map(group => `
-          <div class="resource-group" style="margin-bottom:1.5rem; background:#fff; border-radius:0.75rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); overflow:hidden;">
-            <div class="resource-header" style="background:#f0f9ff; padding:1rem 1.5rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center; color:#1e40af; font-size:1.4rem; font-weight:600;">
-              ${group.category}
-              <span style="font-size:1.3rem;">▼</span>
+          <div style="margin:1.2rem auto; max-width:420px; width:100%;">
+            <div class="resource-header" style="
+              background:#f0f9ff;
+              padding:0.65rem 1.3rem;
+              cursor:pointer;
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              color:#1e40af;
+              font-size:1.15rem;
+              font-weight:600;
+              border-radius:0.5rem;
+              box-shadow:0 1px 5px rgba(0,0,0,0.1);
+              width:100%;
+              max-width:420px;
+              margin:0 auto;
+              transition:all 0.2s ease;
+            ">
+              <span style="flex:1; text-align:left;">${group.category}</span>
+              <span style="font-size:1.1rem; margin-left:0.8rem; transition:transform 0.3s;">▼</span>
             </div>
-            <div class="resource-content" style="display:none; padding:1rem 1.5rem;">
+            <div class="resource-content" style="display:none; margin-top:0.4rem; padding:0.8rem 1rem; background:#ffffff; border-radius:0.5rem; box-shadow:0 1px 5px rgba(0,0,0,0.08); text-align:left;">
               <ul style="list-style:none; margin:0; padding:0;">
                 ${group.items.map(item => `
-                  <li style="margin:0.8rem 0;">
+                  <li style="margin:0.6rem 0; line-height:1.4;">
                     <a href="${item.url}" target="_blank" style="color:#1e40af; text-decoration:none; font-weight:500;">
                       ${item.text}
                     </a>
-                    ${item.description ? `<span style="color:#666; font-size:0.95rem;"> - ${item.description}</span>` : ''}
+                    ${item.description ? `<span style="color:#555; font-size:0.9rem;"> - ${item.description}</span>` : ''}
                   </li>
                 `).join('')}
               </ul>
@@ -420,7 +438,7 @@
           </div>
         `).join('');
 
-        // Add toggle behavior
+        // Toggle + hover
         document.querySelectorAll('.resource-header').forEach(header => {
           header.addEventListener('click', () => {
             const content = header.nextElementSibling;
@@ -428,6 +446,16 @@
             const isHidden = content.style.display === 'none' || !content.style.display;
             content.style.display = isHidden ? 'block' : 'none';
             icon.textContent = isHidden ? '▲' : '▼';
+            header.style.boxShadow = isHidden ? '0 3px 12px rgba(0,0,0,0.15)' : '0 1px 5px rgba(0,0,0,0.1)';
+          });
+
+          header.addEventListener('mouseenter', () => {
+            header.style.background = '#e0f2fe';
+            header.style.boxShadow = '0 3px 10px rgba(0,0,0,0.12)';
+          });
+          header.addEventListener('mouseleave', () => {
+            header.style.background = '#f0f9ff';
+            header.style.boxShadow = '0 1px 5px rgba(0,0,0,0.1)';
           });
         });
       })
@@ -441,5 +469,4 @@
 
 </body>
 </html>
-
 
