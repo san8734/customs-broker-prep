@@ -51,51 +51,18 @@
   },
   {
     "category": "Title 19 Parts",
-    "items": [
-      {
-        "text": "Title 19 CFR - Full (eCFR)",
-        "url": "https://www.ecfr.gov/current/title-19",
-        "description": "Browse all parts of Title 19 CFR"
-      },
-      {
-        "text": "Part 111 - Customs Brokers",
-        "url": "https://www.ecfr.gov/current/title-19/chapter-I/part-111",
-        "description": "Regulations for customs brokers licensing"
-      }
-      // 加更多 Part 如 Part 141 (Entry), Part 146 (FTZ) 等
-    ]
+    "items": []
   },
   {
     "category": "HTS Chapters",
-    "items": [
-      {
-        "text": "Full HTSUS Download (USITC)",
-        "url": "https://hts.usitc.gov/reststop/file?release=currentRelease&filename=finalCopy",
-        "description": "Complete HTSUS PDF (current revision)"
-      }
-      // 你可以加單章 PDF，如果有上傳到 resources/ 如 "resources/HTS-Chapter-84.pdf"
-    ]
+    "items": []
   },
   {
     "category": "Directives",
-    "items": [
-      {
-        "text": "Right to Make Entry Directive (3530-002A)",
-        "url": "https://www.cbp.gov/document/directives/right-make-entry-directive-3530-002a",
-        "description": "CBP Directive on entry rights (PDF available on site)"
-      }
-      // 加其他 CBP directives PDF，如果你上傳了
-    ]
+    "items": []
   },
   {
     "category": "Study Aid",
-    "items": [
-      {
-        "text": "CBP Regulations (Reformatted Version)",
-        "url": "https://www.cbprepcourse.com/products/cbp-regulations",
-        "description": "Easier-to-use 19 CFR (paid, but reference)"
-      }
-      // 加你的自製 cheat sheet 或其他 PDF
-    ]
+    "items": []
   }
 ]
