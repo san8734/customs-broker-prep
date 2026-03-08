@@ -1,0 +1,101 @@
+[
+  {
+    "category": "Useful Links",
+    "items": [
+      {
+        "text": "Title 19 CFR (eCFR) - Official Customs Regulations",
+        "url": "https://www.ecfr.gov/current/title-19",
+        "description": "Full electronic Code of Federal Regulations - Title 19"
+      },
+      {
+        "text": "HTSUS Online - Harmonized Tariff Schedule",
+        "url": "https://hts.usitc.gov/",
+        "description": "Official HTSUS lookup and download"
+      },
+      {
+        "text": "CBP Trade Website",
+        "url": "https://www.cbp.gov/trade",
+        "description": "CBP official trade resources"
+      },
+      {
+        "text": "Basic Import/Export Information",
+        "url": "https://www.cbp.gov/trade/basic-import-export",
+        "description": "CBP basic import/export guide"
+      }
+    ]
+  },
+  {
+    "category": "Questions and Answer Keys",
+    "items": [
+      {
+        "text": "2025-10 Exam Questions (PDF)",
+        "url": "resources/2025-10 Exam Questions.pdf",
+        "description": "October 2025 exam questions"
+      },
+      {
+        "text": "2025-10 Exam Answer Key (PDF)",
+        "url": "resources/2025-10 Exam Answer key.pdf",
+        "description": "Answer key for October 2025"
+      },
+      {
+        "text": "2025-04 Exam Questions (PDF)",
+        "url": "resources/2025-04 Exam Questions.pdf",
+        "description": "April 2025 exam questions"
+      },
+      {
+        "text": "2025-04 Exam Answer Key (PDF)",
+        "url": "resources/2025-04 Exam Answer key.pdf",
+        "description": "Answer key for April 2025"
+      }
+    ]
+  },
+  {
+    "category": "Title 19 Parts",
+    "items": [
+      {
+        "text": "Title 19 CFR - Full (eCFR)",
+        "url": "https://www.ecfr.gov/current/title-19",
+        "description": "Browse all parts of Title 19 CFR"
+      },
+      {
+        "text": "Part 111 - Customs Brokers",
+        "url": "https://www.ecfr.gov/current/title-19/chapter-I/part-111",
+        "description": "Regulations for customs brokers licensing"
+      }
+      // 加更多 Part 如 Part 141 (Entry), Part 146 (FTZ) 等
+    ]
+  },
+  {
+    "category": "HTS Chapters",
+    "items": [
+      {
+        "text": "Full HTSUS Download (USITC)",
+        "url": "https://hts.usitc.gov/reststop/file?release=currentRelease&filename=finalCopy",
+        "description": "Complete HTSUS PDF (current revision)"
+      }
+      // 你可以加單章 PDF，如果有上傳到 resources/ 如 "resources/HTS-Chapter-84.pdf"
+    ]
+  },
+  {
+    "category": "Directives",
+    "items": [
+      {
+        "text": "Right to Make Entry Directive (3530-002A)",
+        "url": "https://www.cbp.gov/document/directives/right-make-entry-directive-3530-002a",
+        "description": "CBP Directive on entry rights (PDF available on site)"
+      }
+      // 加其他 CBP directives PDF，如果你上傳了
+    ]
+  },
+  {
+    "category": "Study Aid",
+    "items": [
+      {
+        "text": "CBP Regulations (Reformatted Version)",
+        "url": "https://www.cbprepcourse.com/products/cbp-regulations",
+        "description": "Easier-to-use 19 CFR (paid, but reference)"
+      }
+      // 加你的自製 cheat sheet 或其他 PDF
+    ]
+  }
+]
