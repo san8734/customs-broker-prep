@@ -143,14 +143,44 @@
   </div>
 </main>
 
+<!-- Firebase SDKs (compat version – load once) -->
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-storage-compat.js"></script>
+
 <script>
-  let fullMode = false;
+  // Firebase Config & Init (with duplicate protection)
+  if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+    const firebaseConfig = {
+      apiKey: "AIzaSyAZEGgz7HLlBJ1dVox4cXoEP5WXBC6FcaU",
+      authDomain: "cble-academy.firebaseapp.com",
+      projectId: "cble-academy",
+      storageBucket: "cble-academy.firebasestorage.app",
+      messagingSenderId: "508803948317",
+      appId: "1:508803948317:web:295291f1b1f699657a8bf4",
+      measurementId: "G-669EN7NV5L"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase initialized successfully!");
+  } else if (typeof firebase !== 'undefined') {
+    console.log("Firebase already initialized – skipping.");
+  }
+
+  // Shortcuts to Firebase services
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+
+  // Your app state & logic (questions, videos, fullMode → will become subscription-based)
+  let fullMode = false;  // TODO: Replace with real subscription check from Firestore
   let recent = [];
   let questions = [];
   let batches = [];
   let videos = [];
 
-  // Fallback videos if videos.json is missing or fails
+  // Placeholder videos (fallback)
   const placeholderVideos = [
     {
       title: "Question Explanations - Chinese-English #1",
@@ -164,23 +194,18 @@
     }
   ];
 
+  // Load batch logic (unchanged, but can be gated later)
   function loadBatch(file) {
     const container = document.getElementById('question-list');
+    if (!container) return;
     container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">Loading questions...</p>';
 
     if (file === 'all') {
       const activeBatches = batches.filter(b => b.active).map(b => b.value);
-
       Promise.all(
         activeBatches.map(batchFile =>
           fetch(batchFile)
-            .then(r => {
-              if (!r.ok) {
-                console.warn(`Failed to load ${batchFile}`);
-                return [];
-              }
-              return r.json();
-            })
+            .then(r => r.ok ? r.json() : [])
             .catch(() => [])
         )
       )
@@ -199,21 +224,17 @@
           }));
           allQuestions = allQuestions.concat(batchQuestions);
         });
-
         questions = allQuestions;
-        console.log(`Loaded ${questions.length} questions from all active batches`);
-        renderQuestions(document.getElementById('search').value || '');
+        console.log(`Loaded ${questions.length} questions from all batches`);
+        renderQuestions(document.getElementById('search')?.value || '');
       })
       .catch(err => {
         console.error('Error loading all batches:', err);
-        container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Error loading questions from all batches.</p>';
+        container.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Error loading questions.</p>';
       });
     } else {
       fetch(file)
-        .then(r => {
-          if (!r.ok) throw new Error(`Cannot load ${file}`);
-          return r.json();
-        })
+        .then(r => r.ok ? r.json() : Promise.reject())
         .then(data => {
           questions = data.map((row, i) => ({
             id: i + 1,
@@ -224,23 +245,29 @@
             explanation: row[4] || 'No explanation available'
           }));
           console.log(`Loaded ${questions.length} questions from ${file}`);
-          renderQuestions(document.getElementById('search').value || '');
+          renderQuestions(document.getElementById('search')?.value || '');
         })
-        .catch(err => {
-          console.error(err);
+        .catch(() => {
           container.innerHTML = `<p style="color:red; text-align:center; padding:2rem;">Failed to load ${file}</p>`;
         });
     }
   }
 
+  // Show/hide pages
   function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
-    document.getElementById('logout-item').classList.toggle('hidden', !fullMode);
+    const page = document.getElementById(id);
+    if (page) page.classList.remove('hidden');
+
+    // Show/hide logout if in full mode (will tie to auth later)
+    const logoutItem = document.getElementById('logout-item');
+    if (logoutItem) logoutItem.classList.toggle('hidden', !fullMode);
+
     if (id === 'questions') renderQuestions();
     if (id === 'videos') renderVideos();
   }
 
+  // Placeholder unlock (replace with Stripe/payment later)
   function unlockFullMode() {
     fullMode = true;
     alert("Full mode unlocked! All content available.");
@@ -251,15 +278,21 @@
     fullMode = false;
     recent = [];
     showPage('home');
+    // TODO: Later → auth.signOut();
   }
 
+  // Render questions (gated by fullMode for now)
   function renderQuestions(filter = '') {
     const container = document.getElementById('question-list');
+    if (!container) return;
     container.innerHTML = '';
+
     if (!fullMode) {
       container.innerHTML = '<div class="teaser">Become a member to access the full question bank and search function.</div>';
       return;
     }
+
+    // Rest of your render logic (unchanged)...
     if (!filter.trim()) {
       container.innerHTML = questions.map(q => `
         <div class="question-item" onclick="openModal(${q.id})">
@@ -268,24 +301,22 @@
       `).join('');
       return;
     }
+
     const clean = filter.toLowerCase().trim().replace(/\s+/g,'');
     const list = questions.filter(q => {
       const y = q.year.toString();
       const m = q.month.toLowerCase();
       const n = q.num.toString();
-      const keys = [
-        `${y}${m}${n}`,
-        `${y}${m.slice(0,3)}${n}`,
-        `${m}${y}${n}`,
-        `${n}${y}${m}`
-      ];
+      const keys = [`${y}${m}${n}`, `${y}${m.slice(0,3)}${n}`, `${m}${y}${n}`, `${n}${y}${m}`];
       return keys.some(k => clean.includes(k)) ||
              `${y}${m}${n}${q.text}${q.explanation}`.toLowerCase().replace(/\s+/g,'').includes(clean);
     });
+
     if (!list.length) {
       container.innerHTML = '<p style="color:#666; text-align:center; padding:2rem;">No matching questions found.</p>';
       return;
     }
+
     container.innerHTML = list.map(q => `
       <div class="question-item" onclick="openModal(${q.id})">
         ${q.year} ${q.month} #${q.num}: ${q.text.substring(0,120)}${q.text.length > 120 ? '...' : ''}
@@ -293,6 +324,7 @@
     `).join('');
   }
 
+  // Render videos (similar gating can be added later)
   function renderVideos(filter = '') {
     const container = document.getElementById('video-list');
     if (!container) return;
@@ -315,74 +347,89 @@
     `).join('');
   }
 
+  // Modal for question details
   function openModal(id) {
     const q = questions.find(q => q.id === id);
     if (!q) return;
+
     document.getElementById('modal-title').innerHTML = `<span class="modal-title">Question ${q.num}</span>`;
     document.getElementById('modal-year-month-num').textContent = `Year: ${q.year} | Month: ${q.month}`;
     document.getElementById('modal-question').innerHTML = (q.text || 'No question text').replace(/\n/g, '<br>');
     document.getElementById('modal-explanation').innerHTML =
       '<span class="modal-explanation-title">Explanation</span><br>' +
       (q.explanation || 'No explanation available').replace(/\n/g, '<br>');
+
     document.getElementById('question-modal').classList.remove('hidden');
 
     if (!recent.includes(id)) {
       recent.unshift(id);
       if (recent.length > 10) recent.pop();
-      document.getElementById('recent-list').innerHTML = recent.map(rid => {
-        const rq = questions.find(qq => qq.id === rid);
-        return `<div>${rq.year} ${rq.month} #${rq.num}: ${rq.text.substring(0,60)}...</div>`;
-      }).join('');
+      const recentList = document.getElementById('recent-list');
+      if (recentList) {
+        recentList.innerHTML = recent.map(rid => {
+          const rq = questions.find(qq => qq.id === rid);
+          return `<div>${rq.year} ${rq.month} #${rq.num}: ${rq.text.substring(0,60)}...</div>`;
+        }).join('');
+      }
     }
   }
 
   function closeModal(id) {
-    document.getElementById(id).classList.add('hidden');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('hidden');
   }
 
+  // Window load – setup event listeners and load data
   window.addEventListener('load', () => {
     showPage('home');
-    document.getElementById('search').addEventListener('input', e => renderQuestions(e.target.value));
-    const vs = document.getElementById('video-search');
-    if (vs) {
-      vs.addEventListener('input', e => renderVideos(e.target.value));
+
+    const searchInput = document.getElementById('search');
+    if (searchInput) {
+      searchInput.addEventListener('input', e => renderQuestions(e.target.value));
+    }
+
+    const videoSearch = document.getElementById('video-search');
+    if (videoSearch) {
+      videoSearch.addEventListener('input', e => renderVideos(e.target.value));
       renderVideos();
     }
 
-    // Load batches
+    // Load batches.json
     fetch('batches.json')
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => {
         batches = data;
         const sel = document.getElementById('batch-select');
-        sel.innerHTML = '';
-        const all = document.createElement('option');
-        all.value = 'all'; all.textContent = 'All Batches'; all.selected = true;
-        sel.appendChild(all);
-        batches.filter(b => b.active).forEach(b => {
-          const op = document.createElement('option');
-          op.value = b.value; op.textContent = b.label;
-          sel.appendChild(op);
-        });
+        if (sel) {
+          sel.innerHTML = '';
+          const all = document.createElement('option');
+          all.value = 'all'; all.textContent = 'All Batches'; all.selected = true;
+          sel.appendChild(all);
+          batches.filter(b => b.active).forEach(b => {
+            const op = document.createElement('option');
+            op.value = b.value; op.textContent = b.label;
+            sel.appendChild(op);
+          });
+        }
         loadBatch('all');
       })
       .catch(() => {
-        document.getElementById('question-list').innerHTML =
-          '<p style="color:red; text-align:center; padding:2rem;">Failed to load batches.json</p>';
+        const cont = document.getElementById('question-list');
+        if (cont) cont.innerHTML = '<p style="color:red; text-align:center; padding:2rem;">Failed to load batches.json</p>';
       });
 
-    // Load videos (fallback to placeholder)
+    // Load videos.json (fallback to placeholders)
     fetch('videos.json')
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => { videos = data; renderVideos(); })
       .catch(() => {
         videos = placeholderVideos;
         renderVideos();
       });
 
-    // Resources – left-aligned, compact buttons (fit to longest text, start closed)
+    // Resources loading (your dynamic collapsible setup – unchanged)
     fetch('resources.json')
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(r => r.ok ? r.json() : Promise.reject())
       .then(groups => {
         const cont = document.getElementById('resources-container');
         if (!cont) return;
@@ -392,26 +439,16 @@
         cont.innerHTML = groups.map(group => `
           <div style="margin:1.2rem 0; text-align:left;">
             <div class="resource-header" style="
-              background:#f0f9ff;
-              padding:0.55rem 1.1rem;
-              cursor:pointer;
-              display:inline-flex;
-              align-items:center;
-              justify-content:space-between;
-              color:#1e40af;
-              font-size:1.05rem;
-              font-weight:600;
-              border-radius:0.4rem;
-              box-shadow:0 1px 4px rgba(0,0,0,0.08);
-              width:fit-content;
-              min-width:240px;
-              max-width:380px;
-              transition:all 0.2s ease;
-            ">
+              background:#f0f9ff; padding:0.55rem 1.1rem; cursor:pointer;
+              display:inline-flex; align-items:center; justify-content:space-between;
+              color:#1e40af; font-size:1.05rem; font-weight:600; border-radius:0.4rem;
+              box-shadow:0 1px 4px rgba(0,0,0,0.08); width:fit-content; min-width:240px;
+              max-width:380px; transition:all 0.2s ease;">
               <span>${group.category}</span>
               <span style="margin-left:0.8rem; font-size:1rem; transition:transform 0.3s;">▼</span>
             </div>
-            <div class="resource-content" style="display:none; margin-top:0.3rem; padding:0.7rem 1rem; background:#ffffff; border-radius:0.4rem; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+            <div class="resource-content" style="display:none; margin-top:0.3rem; padding:0.7rem 1rem;
+              background:#ffffff; border-radius:0.4rem; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
               <ul style="list-style:none; margin:0; padding:0;">
                 ${group.items.map(item => `
                   <li style="margin:0.5rem 0; line-height:1.35;">
@@ -426,7 +463,7 @@
           </div>
         `).join('');
 
-        // Toggle + hover
+        // Add click/hover for collapsibles
         document.querySelectorAll('.resource-header').forEach(header => {
           header.addEventListener('click', () => {
             const content = header.nextElementSibling;
@@ -454,7 +491,6 @@
       });
   });
 </script>
-
 </body>
 </html>
 
